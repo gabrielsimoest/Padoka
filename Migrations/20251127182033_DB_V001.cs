@@ -123,7 +123,7 @@ namespace Padoka.Migrations
                         column: x => x.ItemCardapioId,
                         principalTable: "ItensCardapio",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -146,7 +146,7 @@ namespace Padoka.Migrations
                         column: x => x.PedidoId,
                         principalTable: "Pedidos",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
                         name: "FK_HistoricoStatusPedidos_Usuarios_AlteradoPorId",
                         column: x => x.AlteradoPorId,
@@ -182,7 +182,7 @@ namespace Padoka.Migrations
                         column: x => x.PedidoId,
                         principalTable: "Pedidos",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                 });
 
             migrationBuilder.CreateTable(
@@ -203,7 +203,7 @@ namespace Padoka.Migrations
                         column: x => x.ItemPedidoId,
                         principalTable: "ItensPedido",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
                         name: "FK_ItensPedidoOpcao_OpcoesAdicionais_OpcaoAdicionalId",
                         column: x => x.OpcaoAdicionalId,
