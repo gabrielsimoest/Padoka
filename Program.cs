@@ -15,9 +15,6 @@ builder.Services.AddFeatures();
 builder.Services.AddDbContext<PadokaContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Padoka")));
 
-// Auth Service
-builder.Services.AddScoped<IAuthService, AuthService>();
-
 // JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"] ?? "PadokaSecretKey123456789012345678901234";
 var key = Encoding.UTF8.GetBytes(jwtSecret);
@@ -57,7 +54,7 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler("/Cardapio/Error");
     app.UseHsts();
 }
 
@@ -71,6 +68,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Cardapio}/{action=Index}/{id?}");
 
 app.Run();

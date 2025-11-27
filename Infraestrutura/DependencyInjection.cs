@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc.Razor;
+using Padoka.Services;
 
 namespace MedScale.Sys.Infrastructure
 {
@@ -6,8 +7,12 @@ namespace MedScale.Sys.Infrastructure
     {
         public static IServiceCollection AddFeatures(this IServiceCollection services)
         {
-            //services.AddScoped<Service>();
-                
+            // Auth Service
+            services.AddScoped<IAuthService, AuthService>();
+
+            // Cardapio Service
+            services.AddScoped<ICardapioService, CardapioService>();
+
             return services;
         }
     }

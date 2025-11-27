@@ -19,7 +19,7 @@ namespace Padoka.Controllers
             var token = Request.Cookies["auth_token"];
             if (!string.IsNullOrEmpty(token))
             {
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Cardapio");
             }
 
             return View();
