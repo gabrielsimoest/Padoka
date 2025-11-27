@@ -1,0 +1,187 @@
+@{
+    ViewData["Title"] = "Cardápio";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Padoka</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/cardapio.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+    <header class="cardapio-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo-link">
+                    <img src="~/img/logo-padoka.png" alt="Padoka" class="header-logo" />
+                </a>
+                <div class="header-info">
+                    <h1>Cardápio Digital</h1>
+                    <p>A Melhor Panificadora de Barretos - SP</p>
+                </div>
+                <div class="header-actions">
+                    <!-- Botão Login (não autenticado) -->
+                    <a href="/Auth/Login" class="btn-login" id="btnLogin">
+                        <i class="fas fa-user"></i>
+                        <span class="btn-login-text">Entrar</span>
+                    </a>
+                    <!-- Menu Usuário (autenticado) -->
+                    <div class="user-menu d-none" id="userMenu">
+                        <button class="btn-user" id="btnUser" onclick="toggleUserDropdown()">
+                            <i class="fas fa-user-circle"></i>
+                            <span class="user-name" id="userName">Usuário</span>
+                            <i class="fas fa-chevron-down user-arrow"></i>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <a href="/Pedido/MeusPedidos" class="dropdown-item">
+                                <i class="fas fa-receipt me-2"></i>Meus Pedidos
+                            </a>
+                            <a href="/Auth/MinhaConta" class="dropdown-item">
+                                <i class="fas fa-cog me-2"></i>Minha Conta
+                            </a>
+                            <hr class="dropdown-divider">
+                            <button class="dropdown-item text-danger" onclick="logout()">
+                                <i class="fas fa-sign-out-alt me-2"></i>Sair
+                            </button>
+                        </div>
+                    </div>
+                    <button class="btn-cart" id="btnCarrinho" onclick="abrirCarrinho()">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span class="cart-count" id="cartCount">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <section class="search-section">
+        <div class="container">
+            <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" 
+                       class="search-input" 
+                       id="searchInput" 
+                       placeholder="Buscar pães, bolos, lanches..."
+                       autocomplete="off">
+                <button class="btn-clear-search d-none" id="btnClearSearch">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <nav class="categories-nav" id="categoriesNav">
+        <div class="container">
+            <div class="categories-scroll" id="categoriesScroll">
+
+            </div>
+        </div>
+    </nav>
+
+    <main class="cardapio-main">
+        <div class="container">
+            <div class="loading-state" id="loadingState">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+                <p>Carregando cardápio...</p>
+            </div>
+
+            <div class="empty-state d-none" id="emptyState">
+                <i class="fas fa-search"></i>
+                <h3>Nenhum item encontrado</h3>
+                <p>Tente buscar por outro termo ou navegue pelas categorias.</p>
+            </div>
+
+            <div class="cardapio-content d-none" id="cardapioContent">
+            </div>
+
+            <div class="search-results d-none" id="searchResults">
+                <h2 class="section-title">Resultados da busca</h2>
+                <div class="items-grid" id="searchResultsGrid">
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="cart-overlay d-none" id="cartOverlay" onclick="fecharCarrinho()"></div>
+    <aside class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h3><i class="fas fa-shopping-bag me-2"></i>Meu Pedido</h3>
+            <button class="btn-close-cart" onclick="fecharCarrinho()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="cart-body" id="cartBody">
+            <div class="cart-empty" id="cartEmpty">
+                <i class="fas fa-shopping-basket"></i>
+                <p>Seu carrinho está vazio</p>
+                <span>Adicione itens do cardápio para fazer seu pedido</span>
+            </div>
+            <div class="cart-items d-none" id="cartItems">
+
+            </div>
+        </div>
+        <div class="cart-footer d-none" id="cartFooter">
+            <div class="cart-total">
+                <span>Total</span>
+                <strong id="cartTotal">R$ 0,00</strong>
+            </div>
+            <button class="btn-checkout" id="btnCheckout" onclick="irParaCheckout()">
+                <i class="fas fa-check me-2"></i>Finalizar Pedido
+            </button>
+        </div>
+    </aside>
+
+    <footer class="cardapio-footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; 2025 Padoka - A Melhor Panificadora de Barretos</p>
+                <p class="footer-address">
+                    <i class="fas fa-map-marker-alt me-1"></i>
+                    Região Central de Barretos - SP
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-lock me-2"></i>Login Necessário
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="login-modal-icon">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </div>
+                    <h4>Faça login para continuar</h4>
+                    <p>Para adicionar itens ao carrinho e fazer pedidos, você precisa estar logado.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        Continuar navegando
+                    </button>
+                    <a href="/Auth/Login" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt me-2"></i>Fazer Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/cardapio.js" asp-append-version="true"></script>
+</body>
+</html>
