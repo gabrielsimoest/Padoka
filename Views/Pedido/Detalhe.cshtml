@@ -1,0 +1,322 @@
+@{
+    ViewData["Title"] = "Detalhes do Pedido";
+    Layout = null;
+    var pedidoId = ViewData["PedidoId"];
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Padoka</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/cardapio.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/checkout.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+    <header class="cardapio-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/Pedido/MeusPedidos" class="btn-back">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div class="header-info">
+                    <h1>Detalhes do Pedido</h1>
+                    <p id="numeroPedido">Carregando...</p>
+                </div>
+                <div class="header-actions">
+                    <span class="pedido-status" id="statusPedido">---</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="pedidos-main">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="checkout-card mb-4">
+                        <div class="checkout-card-header">
+                            <i class="fas fa-info-circle"></i>
+                            <h5>Informações do Pedido</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <small class="text-muted d-block">Cliente</small>
+                                    <strong id="nomeCliente">---</strong>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <small class="text-muted d-block">Data do Pedido</small>
+                                    <strong id="dataPedido">---</strong>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <small class="text-muted d-block">Mesa</small>
+                                    <strong id="mesaPedido">---</strong>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <small class="text-muted d-block">Observações</small>
+                                    <strong id="observacoesPedido">---</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkout-card">
+                        <div class="checkout-card-header">
+                            <i class="fas fa-shopping-basket"></i>
+                            <h5>Itens do Pedido</h5>
+                        </div>
+                        <div class="cart-items-list" id="itensPedido">
+                            <div class="text-center py-4">
+                                <i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="checkout-card order-summary mb-4">
+                        <div class="checkout-card-header">
+                            <i class="fas fa-receipt"></i>
+                            <h5>Resumo</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="summary-total">
+                                <span>Total</span>
+                                <span class="value" id="valorTotal">R$ 0,00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkout-card">
+                        <div class="checkout-card-header">
+                            <i class="fas fa-history"></i>
+                            <h5>Histórico</h5>
+                        </div>
+                        <div class="card-body" id="historicoPedido">
+                            <div class="text-center py-3">
+                                <i class="fas fa-spinner fa-spin text-muted"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <a href="/Cardapio" class="btn btn-primary w-100">
+                            <i class="fas fa-utensils me-2"></i>Fazer Novo Pedido
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const PEDIDO_ID = @pedidoId;
+        
+        $(document).ready(function() {
+            loadPedido();
+        });
+        
+        function loadPedido() {
+            const token = localStorage.getItem('padoka_token');
+            
+            if (!token) {
+                window.location.href = '/Auth/Login?returnUrl=/Pedido/Detalhe/' + PEDIDO_ID;
+                return;
+            }
+            
+            $.ajax({
+                url: `/api/pedido/${PEDIDO_ID}`,
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                success: function(response) {
+                    if (response.sucesso && response.dados) {
+                        renderPedido(response.dados);
+                    } else {
+                        showError('Pedido não encontrado.');
+                    }
+                },
+                error: function(xhr) {
+                    if (xhr.status === 401) {
+                        localStorage.removeItem('padoka_token');
+                        localStorage.removeItem('padoka_user');
+                        window.location.href = '/Auth/Login?returnUrl=/Pedido/Detalhe/' + PEDIDO_ID;
+                    } else if (xhr.status === 404) {
+                        showError('Pedido não encontrado.');
+                    } else {
+                        showError('Erro ao carregar pedido.');
+                    }
+                }
+            });
+        }
+        
+        function renderPedido(pedido) {
+            $('#numeroPedido').text(`Pedido #${pedido.numeroPedido}`);
+            $('#statusPedido')
+                .text(getStatusText(pedido.statusCodigo))
+                .addClass(getStatusClass(pedido.statusCodigo));
+            
+            $('#nomeCliente').text(pedido.cliente?.nome || 'Cliente');
+            $('#dataPedido').text(new Date(pedido.criadoEm).toLocaleString('pt-BR'));
+            $('#mesaPedido').text(pedido.mesa || 'Não informada');
+            $('#observacoesPedido').text(pedido.observacoes || 'Nenhuma');
+            
+            renderItens(pedido.itens);
+            
+            $('#valorTotal').text(formatCurrency(pedido.valorTotal));
+            
+            renderHistorico(pedido.historico);
+        }
+        
+        function renderItens(itens) {
+            const container = $('#itensPedido');
+            container.empty();
+            
+            if (!itens || itens.length === 0) {
+                container.html('<p class="text-muted text-center py-3">Nenhum item</p>');
+                return;
+            }
+            
+            itens.forEach(item => {
+                container.append(`
+                    <div class="cart-item">
+                        <div class="cart-item-image">
+                            ${item.imagemUrl 
+                                ? `<img src="${item.imagemUrl}" alt="${item.nome}" />` 
+                                : '<div class="placeholder-img"><i class="fas fa-bread-slice"></i></div>'}
+                        </div>
+                        <div class="cart-item-info">
+                            <div class="cart-item-name">${item.quantidade}x ${item.nome}</div>
+                            ${item.opcoesAdicionais?.length ? `
+                                <div class="cart-item-options">
+                                    ${item.opcoesAdicionais.map(o => `<span>+ ${o.nome}</span>`).join('')}
+                                </div>
+                            ` : ''}
+                            ${item.observacoes ? `<div class="text-muted small fst-italic">"${item.observacoes}"</div>` : ''}
+                        </div>
+                        <div class="cart-item-actions">
+                            <div class="cart-item-subtotal">${formatCurrency(item.precoTotal)}</div>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+        
+        function renderHistorico(historico) {
+            const container = $('#historicoPedido');
+            container.empty();
+            
+            if (!historico || historico.length === 0) {
+                container.html('<p class="text-muted text-center py-3">Sem histórico</p>');
+                return;
+            }
+            
+            const timeline = $('<div class="timeline"></div>');
+            
+            historico.forEach((h, index) => {
+                timeline.append(`
+                    <div class="timeline-item ${index === 0 ? 'active' : ''}">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <strong>${h.statusNovo}</strong>
+                            <small class="d-block text-muted">${new Date(h.alteradoEm).toLocaleString('pt-BR')}</small>
+                        </div>
+                    </div>
+                `);
+            });
+            
+            container.append(timeline);
+        }
+        
+        function showError(message) {
+            $('#itensPedido').html(`
+                <div class="alert alert-danger text-center">
+                    <i class="fas fa-exclamation-circle me-2"></i>${message}
+                </div>
+            `);
+        }
+        
+        function statusToNumber(status) {
+            if (typeof status === 'number') return status;
+            const statusMap = {
+                'pendente': 0,
+                'empreparo': 1,
+                'pronto': 2,
+                'entregue': 3,
+                'cancelado': 4
+            };
+            return statusMap[String(status).toLowerCase()] ?? parseInt(status) ?? 0;
+        }
+
+        function getStatusClass(status) {
+            const numStatus = statusToNumber(status);
+            const classes = {
+                0: 'pendente',
+                1: 'em-preparo',
+                2: 'pronto',
+                3: 'entregue',
+                4: 'cancelado'
+            };
+            return classes[numStatus] || 'pendente';
+        }
+        
+        function getStatusText(status) {
+            const numStatus = statusToNumber(status);
+            const texts = {
+                0: 'Pendente',
+                1: 'Em Preparo',
+                2: 'Pronto',
+                3: 'Entregue',
+                4: 'Cancelado'
+            };
+            return texts[numStatus] || 'Desconhecido';
+        }
+        
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(value);
+        }
+    </script>
+
+    <style>
+        .timeline {
+            padding-left: 20px;
+            border-left: 2px solid var(--border-color);
+        }
+        
+        .timeline-item {
+            position: relative;
+            padding-bottom: 1rem;
+            padding-left: 20px;
+        }
+        
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+        
+        .timeline-marker {
+            position: absolute;
+            left: -29px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--border-color);
+            border: 2px solid white;
+        }
+        
+        .timeline-item.active .timeline-marker {
+            background: var(--success-color);
+        }
+    </style>
+</body>
+</html>

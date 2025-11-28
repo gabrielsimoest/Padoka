@@ -1,0 +1,634 @@
+@{
+    ViewData["Title"] = "Admin - Cardápio";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Padoka</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+    <div class="admin-wrapper">
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <a href="/Admin/Dashboard" class="logo-link">
+                    <img src="~/img/logo-padoka.png" alt="Padoka" class="sidebar-logo" />
+                </a>
+                <span class="sidebar-title">Admin</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="/Admin/Dashboard" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/Admin/Pedidos" class="nav-item">
+                    <i class="fas fa-receipt"></i>
+                    <span>Pedidos</span>
+                    <span class="badge" id="pedidosPendentes">0</span>
+                </a>
+                <a href="/Admin/Cardapio" class="nav-item active">
+                    <i class="fas fa-utensils"></i>
+                    <span>Cardápio</span>
+                </a>
+                <div class="nav-divider"></div>
+                <a href="/Cardapio" class="nav-item">
+                    <i class="fas fa-store"></i>
+                    <span>Ver Loja</span>
+                </a>
+                <a href="#" class="nav-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sair</span>
+                </a>
+            </nav>
+        </aside>
+
+
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="header-left">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>Cardápio</h1>
+                </div>
+                <div class="header-right">
+                    <span class="admin-user">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="adminName" class="d-none d-md-inline ms-2">Administrador</span>
+                    </span>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <ul class="nav nav-tabs mb-3 mb-md-4" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabCategorias">
+                            <i class="fas fa-folder me-2"></i>Categorias
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabItens">
+                            <i class="fas fa-bread-slice me-2"></i>Itens
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="tabCategorias">
+                        <div class="admin-card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-folder me-2"></i>Categorias</h5>
+                                <button class="btn btn-primary btn-sm" onclick="abrirModalCategoria()">
+                                    <i class="fas fa-plus me-1"></i>Nova Categoria
+                                </button>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table admin-table mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Nome</th>
+                                                <th>Descrição</th>
+                                                <th>Ordem</th>
+                                                <th>Itens</th>
+                                                <th>Ações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="categoriasTable">
+                                            <tr>
+                                                <td colspan="6" class="text-center py-4">
+                                                    <i class="fas fa-spinner fa-spin me-2"></i>Carregando...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane fade" id="tabItens">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <select class="form-select" id="filtroCategoria" onchange="loadItens()">
+                                    <option value="">Todas as categorias</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" class="form-control" id="buscaItem" placeholder="Buscar item..." onkeyup="loadItens()">
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <button class="btn btn-primary" onclick="abrirModalItem()">
+                                    <i class="fas fa-plus me-1"></i>Novo Item
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="admin-card">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table admin-table mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>Imagem</th>
+                                                <th>Nome</th>
+                                                <th>Categoria</th>
+                                                <th>Preço</th>
+                                                <th>Disponível</th>
+                                                <th>Ações</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="itensTable">
+                                            <tr>
+                                                <td colspan="6" class="text-center py-4">
+                                                    <i class="fas fa-spinner fa-spin me-2"></i>Carregando...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal fade" id="categoriaModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="categoriaModalTitle">Nova Categoria</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="categoriaForm" onsubmit="salvarCategoria(event)">
+                    <div class="modal-body">
+                        <input type="hidden" id="categoriaId">
+                        <div class="mb-3">
+                            <label class="form-label">Nome <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="categoriaNome" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descrição</label>
+                            <textarea class="form-control" id="categoriaDescricao" rows="3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ícone (Font Awesome)</label>
+                            <input type="text" class="form-control" id="categoriaIcone" placeholder="fas fa-bread-slice">
+                            <small class="text-muted">Exemplo: fas fa-bread-slice, fas fa-coffee</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ordem de Exibição</label>
+                            <input type="number" class="form-control" id="categoriaOrdem" value="0">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="itemModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="itemModalTitle">Novo Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="itemForm" onsubmit="salvarItem(event)">
+                    <div class="modal-body">
+                        <input type="hidden" id="itemId">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="mb-3">
+                                    <label class="form-label">Nome <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="itemNome" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Preço <span class="text-danger">*</span></label>
+                                    <input type="number" step="0.01" class="form-control" id="itemPreco" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Descrição</label>
+                            <textarea class="form-control" id="itemDescricao" rows="2"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Categoria <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="itemCategoria" required>
+                                        <option value="">Selecione...</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">URL da Imagem</label>
+                                    <input type="url" class="form-control" id="itemImagem" placeholder="https://...">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="itemDisponivel" checked>
+                                    <label class="form-check-label" for="itemDisponivel">Disponível</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="itemDestaque">
+                                    <label class="form-check-label" for="itemDestaque">Destaque</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/admin.js" asp-append-version="true"></script>
+    <script>
+        let categorias = [];
+
+        $(document).ready(function() {
+            checkAdminAuth();
+            loadCategorias();
+            loadItens();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('action') === 'new-item') {
+                $('[data-bs-target="#tabItens"]').tab('show');
+                setTimeout(() => abrirModalItem(), 500);
+            } else if (urlParams.get('action') === 'new-category') {
+                setTimeout(() => abrirModalCategoria(), 500);
+            }
+        });
+
+        function loadCategorias() {
+            const token = localStorage.getItem('padoka_token');
+
+            $.ajax({
+                url: '/api/admin/categorias',
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` },
+                success: function(response) {
+                    if (response.sucesso) {
+                        categorias = response.dados || [];
+                        renderCategorias(categorias);
+                        populateCategoriasSelect();
+                    }
+                },
+                error: function() {
+                    $('#categoriasTable').html('<tr><td colspan="6" class="text-center text-danger">Erro ao carregar</td></tr>');
+                }
+            });
+        }
+
+        function renderCategorias(cats) {
+            const tbody = $('#categoriasTable');
+            tbody.empty();
+
+            if (!cats || cats.length === 0) {
+                tbody.html('<tr><td colspan="6" class="text-center text-muted">Nenhuma categoria cadastrada</td></tr>');
+                return;
+            }
+
+            cats.forEach(cat => {
+                tbody.append(`
+                    <tr>
+                        <td>${cat.id}</td>
+                        <td>
+                            <i class="${cat.icone || 'fas fa-folder'} me-2"></i>
+                            <strong>${cat.nome}</strong>
+                        </td>
+                        <td>${cat.descricao || '-'}</td>
+                        <td>${cat.ordem}</td>
+                        <td>${cat.quantidadeItens || 0}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="editarCategoria(${cat.id})" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="excluirCategoria(${cat.id})" title="Excluir">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        function populateCategoriasSelect() {
+            const options = categorias.map(c => `<option value="${c.id}">${c.nome}</option>`).join('');
+            $('#filtroCategoria').html('<option value="">Todas as categorias</option>' + options);
+            $('#itemCategoria').html('<option value="">Selecione...</option>' + options);
+        }
+
+        function abrirModalCategoria(id = null) {
+            $('#categoriaId').val('');
+            $('#categoriaNome').val('');
+            $('#categoriaDescricao').val('');
+            $('#categoriaIcone').val('');
+            $('#categoriaOrdem').val(0);
+            $('#categoriaModalTitle').text('Nova Categoria');
+
+            new bootstrap.Modal(document.getElementById('categoriaModal')).show();
+        }
+
+        function editarCategoria(id) {
+            const cat = categorias.find(c => c.id === id);
+            if (!cat) return;
+
+            $('#categoriaId').val(cat.id);
+            $('#categoriaNome').val(cat.nome);
+            $('#categoriaDescricao').val(cat.descricao || '');
+            $('#categoriaIcone').val(cat.icone || '');
+            $('#categoriaOrdem').val(cat.ordem);
+            $('#categoriaModalTitle').text('Editar Categoria');
+
+            new bootstrap.Modal(document.getElementById('categoriaModal')).show();
+        }
+
+        function salvarCategoria(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('padoka_token');
+            const id = $('#categoriaId').val();
+
+            const data = {
+                nome: $('#categoriaNome').val(),
+                descricao: $('#categoriaDescricao').val() || null,
+                icone: $('#categoriaIcone').val() || null,
+                ordem: parseInt($('#categoriaOrdem').val()) || 0
+            };
+
+            const url = id ? `/api/admin/categorias/${id}` : '/api/admin/categorias';
+            const method = id ? 'PUT' : 'POST';
+
+            $.ajax({
+                url: url,
+                method: method,
+                contentType: 'application/json',
+                headers: { 'Authorization': `Bearer ${token}` },
+                data: JSON.stringify(data),
+                success: function(response) {
+                    if (response.sucesso) {
+                        bootstrap.Modal.getInstance(document.getElementById('categoriaModal')).hide();
+                        showToast('success', 'Categoria salva com sucesso!');
+                        loadCategorias();
+                    } else {
+                        showToast('error', response.mensagem || 'Erro ao salvar');
+                    }
+                },
+                error: function(xhr) {
+                    showToast('error', xhr.responseJSON?.mensagem || 'Erro ao salvar categoria');
+                }
+            });
+        }
+
+        function excluirCategoria(id) {
+            if (!confirm('Tem certeza que deseja excluir esta categoria?')) return;
+
+            const token = localStorage.getItem('padoka_token');
+
+            $.ajax({
+                url: `/api/admin/categorias/${id}`,
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+                success: function(response) {
+                    if (response.sucesso) {
+                        showToast('success', 'Categoria excluída!');
+                        loadCategorias();
+                    } else {
+                        showToast('error', response.mensagem || 'Erro ao excluir');
+                    }
+                },
+                error: function(xhr) {
+                    showToast('error', xhr.responseJSON?.mensagem || 'Erro ao excluir categoria');
+                }
+            });
+        }
+
+        function loadItens() {
+            const token = localStorage.getItem('padoka_token');
+            const categoria = $('#filtroCategoria').val();
+            const busca = $('#buscaItem').val();
+
+            let url = '/api/admin/itens?';
+            if (categoria) url += `categoriaId=${categoria}&`;
+            if (busca) url += `busca=${encodeURIComponent(busca)}`;
+
+            $.ajax({
+                url: url,
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` },
+                success: function(response) {
+                    if (response.sucesso) {
+                        renderItens(response.dados || []);
+                    }
+                },
+                error: function() {
+                    $('#itensTable').html('<tr><td colspan="6" class="text-center text-danger">Erro ao carregar</td></tr>');
+                }
+            });
+        }
+
+        function renderItens(itens) {
+            const tbody = $('#itensTable');
+            tbody.empty();
+
+            if (!itens || itens.length === 0) {
+                tbody.html('<tr><td colspan="6" class="text-center text-muted">Nenhum item cadastrado</td></tr>');
+                return;
+            }
+
+            itens.forEach(item => {
+                tbody.append(`
+                    <tr>
+                        <td>
+                            ${item.imagemUrl && item.imagemUrl.trim() !== ''
+                                ? `<img src="${item.imagemUrl}" alt="" class="item-thumb" onerror="this.style.display='none'; this.parentElement.innerHTML='<div class=item-thumb-placeholder><i class=fas fa-image></i></div>';">`
+                                : '<div class="item-thumb-placeholder"><i class="fas fa-image"></i></div>'}
+                        </td>
+                        <td>
+                            <strong>${item.nome}</strong>
+                            ${item.destaque ? '<span class="badge bg-warning ms-1">Destaque</span>' : ''}
+                            <div class="text-muted small">${item.descricao || ''}</div>
+                        </td>
+                        <td>${item.nomeCategoria || '-'}</td>
+                        <td><strong>${formatCurrency(item.preco)}</strong></td>
+                        <td>
+                            <span class="badge ${item.disponivel ? 'bg-success' : 'bg-secondary'}">
+                                ${item.disponivel ? 'Sim' : 'Não'}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="editarItem(${item.id})" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-outline-${item.disponivel ? 'warning' : 'success'}"
+                                        onclick="toggleDisponibilidade(${item.id}, ${!item.disponivel})"
+                                        title="${item.disponivel ? 'Desativar' : 'Ativar'}">
+                                    <i class="fas fa-${item.disponivel ? 'eye-slash' : 'eye'}"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="excluirItem(${item.id})" title="Excluir">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        function abrirModalItem(id = null) {
+            $('#itemId').val('');
+            $('#itemNome').val('');
+            $('#itemDescricao').val('');
+            $('#itemPreco').val('');
+            $('#itemCategoria').val('');
+            $('#itemImagem').val('');
+            $('#itemDisponivel').prop('checked', true);
+            $('#itemDestaque').prop('checked', false);
+            $('#itemModalTitle').text('Novo Item');
+
+            new bootstrap.Modal(document.getElementById('itemModal')).show();
+        }
+
+        function editarItem(id) {
+            const token = localStorage.getItem('padoka_token');
+
+            $.ajax({
+                url: `/api/admin/itens/${id}`,
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` },
+                success: function(response) {
+                    if (response.sucesso && response.dados) {
+                        const item = response.dados;
+                        $('#itemId').val(item.id);
+                        $('#itemNome').val(item.nome);
+                        $('#itemDescricao').val(item.descricao || '');
+                        $('#itemPreco').val(item.preco);
+                        $('#itemCategoria').val(item.categoriaId);
+                        $('#itemImagem').val(item.imagemUrl || '');
+                        $('#itemDisponivel').prop('checked', item.disponivel);
+                        $('#itemDestaque').prop('checked', item.destaque);
+                        $('#itemModalTitle').text('Editar Item');
+
+                        new bootstrap.Modal(document.getElementById('itemModal')).show();
+                    }
+                }
+            });
+        }
+
+        function salvarItem(e) {
+            e.preventDefault();
+            const token = localStorage.getItem('padoka_token');
+            const id = $('#itemId').val();
+
+            const data = {
+                nome: $('#itemNome').val(),
+                descricao: $('#itemDescricao').val() || null,
+                preco: parseFloat($('#itemPreco').val()),
+                categoriaId: parseInt($('#itemCategoria').val()),
+                imagemUrl: $('#itemImagem').val() || null,
+                disponivel: $('#itemDisponivel').is(':checked'),
+                destaque: $('#itemDestaque').is(':checked')
+            };
+
+            const url = id ? `/api/admin/itens/${id}` : '/api/admin/itens';
+            const method = id ? 'PUT' : 'POST';
+
+            $.ajax({
+                url: url,
+                method: method,
+                contentType: 'application/json',
+                headers: { 'Authorization': `Bearer ${token}` },
+                data: JSON.stringify(data),
+                success: function(response) {
+                    if (response.sucesso) {
+                        bootstrap.Modal.getInstance(document.getElementById('itemModal')).hide();
+                        showToast('success', 'Item salvo com sucesso!');
+                        loadItens();
+                    } else {
+                        showToast('error', response.mensagem || 'Erro ao salvar');
+                    }
+                },
+                error: function(xhr) {
+                    showToast('error', xhr.responseJSON?.mensagem || 'Erro ao salvar item');
+                }
+            });
+        }
+
+        function toggleDisponibilidade(id, disponivel) {
+            const token = localStorage.getItem('padoka_token');
+
+            $.ajax({
+                url: `/api/admin/itens/${id}/disponibilidade`,
+                method: 'PUT',
+                contentType: 'application/json',
+                headers: { 'Authorization': `Bearer ${token}` },
+                data: JSON.stringify({ disponivel: disponivel }),
+                success: function(response) {
+                    if (response.sucesso) {
+                        showToast('success', disponivel ? 'Item ativado!' : 'Item desativado!');
+                        loadItens();
+                    }
+                },
+                error: function() {
+                    showToast('error', 'Erro ao alterar disponibilidade');
+                }
+            });
+        }
+
+        function excluirItem(id) {
+            if (!confirm('Tem certeza que deseja excluir este item?')) return;
+
+            const token = localStorage.getItem('padoka_token');
+
+            $.ajax({
+                url: `/api/admin/itens/${id}`,
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` },
+                success: function(response) {
+                    if (response.sucesso) {
+                        showToast('success', 'Item excluído!');
+                        loadItens();
+                    } else {
+                        showToast('error', response.mensagem || 'Erro ao excluir');
+                    }
+                },
+                error: function(xhr) {
+                    showToast('error', xhr.responseJSON?.mensagem || 'Erro ao excluir item');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

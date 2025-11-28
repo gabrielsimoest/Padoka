@@ -40,12 +40,16 @@ function loadItemData() {
 }
 
 function renderItemDetails() {
+    const placeholderImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect fill='%23f5e6d3' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' fill='%23c4a574' font-family='Arial' font-size='80' text-anchor='middle' dy='.3em'%3E🍞%3C/text%3E%3C/svg%3E";
     $('#headerTitle').text(itemData.nome);
     
-    if (itemData.imagemUrl) {
+    if (itemData.imagemUrl && itemData.imagemUrl.trim() !== '') {
         $('#itemImage').attr('src', itemData.imagemUrl).attr('alt', itemData.nome);
+        $('#itemImage').on('error', function() {
+            $(this).attr('src', placeholderImg);
+        });
     } else {
-        $('#itemImage').attr('src', '/img/placeholder-item.png').attr('alt', itemData.nome);
+        $('#itemImage').attr('src', placeholderImg).attr('alt', itemData.nome);
     }
 
     if (itemData.categoria) {
@@ -270,12 +274,15 @@ function renderCart() {
             item.opcoes.forEach(o => itemTotalPrice += o.preco);
         }
         
+        const placeholderImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect fill='%23f5e6d3' width='80' height='80'/%3E%3Ctext x='50%25' y='50%25' fill='%23c4a574' font-family='Arial' font-size='30' text-anchor='middle' dy='.3em'%3E🍞%3C/text%3E%3C/svg%3E";
+        const imgUrl = item.imagemUrl && item.imagemUrl.trim() !== '' ? item.imagemUrl : placeholderImg;
+        
         html += `
             <div class="cart-item">
-                <img src="${item.imagemUrl || '/img/placeholder-item.png'}" 
+                <img src="${imgUrl}" 
                      alt="${item.nome}" 
                      class="cart-item-image"
-                     onerror="this.src='/img/placeholder-item.png'">
+                     onerror="this.src='${placeholderImg}'">
                 <div class="cart-item-info">
                     <div class="cart-item-name">${item.nome}</div>
                     ${optionsText ? `<div class="cart-item-options">${optionsText}</div>` : ''}

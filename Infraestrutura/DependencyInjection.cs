@@ -7,11 +7,12 @@ namespace MedScale.Sys.Infrastructure
     {
         public static IServiceCollection AddFeatures(this IServiceCollection services)
         {
-            // Auth Service
             services.AddScoped<IAuthService, AuthService>();
-
-            // Cardapio Service
             services.AddScoped<ICardapioService, CardapioService>();
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<ICardapioService, CardapioService>();
+            services.AddScoped<IPedidoService, PedidoService>();
+            services.AddScoped<IAdminCardapioService, AdminCardapioService>();
 
             return services;
         }

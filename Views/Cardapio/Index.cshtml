@@ -26,12 +26,10 @@
                     <p>A Melhor Panificadora de Barretos - SP</p>
                 </div>
                 <div class="header-actions">
-                    <!-- Botão Login (não autenticado) -->
                     <a href="/Auth/Login" class="btn-login" id="btnLogin">
                         <i class="fas fa-user"></i>
                         <span class="btn-login-text">Entrar</span>
                     </a>
-                    <!-- Menu Usuário (autenticado) -->
                     <div class="user-menu d-none" id="userMenu">
                         <button class="btn-user" id="btnUser" onclick="toggleUserDropdown()">
                             <i class="fas fa-user-circle"></i>
@@ -44,6 +42,9 @@
                             </a>
                             <a href="/Auth/MinhaConta" class="dropdown-item">
                                 <i class="fas fa-cog me-2"></i>Minha Conta
+                            </a>
+                            <a href="/Admin/Dashboard" class="dropdown-item admin-only d-none" id="menuAdmin">
+                                <i class="fas fa-chart-line me-2"></i>Painel Admin
                             </a>
                             <hr class="dropdown-divider">
                             <button class="dropdown-item text-danger" onclick="logout()">

@@ -1,0 +1,137 @@
+@{
+    ViewData["Title"] = "Pedido Confirmado";
+    Layout = null;
+    var pedidoId = ViewData["PedidoId"];
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Padoka</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/cardapio.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/checkout.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+    <!-- Header -->
+    <header class="cardapio-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo-link">
+                    <img src="~/img/logo-padoka.png" alt="Padoka" class="header-logo" />
+                </a>
+                <div class="header-info">
+                    <h1>Pedido Confirmado</h1>
+                    <p>Obrigado pela preferência!</p>
+                </div>
+                <div class="header-actions">
+                    <div class="checkout-step completed">
+                        <i class="fas fa-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="confirmation-main">
+        <div class="container">
+            <div class="confirmation-content">
+                <div class="confirmation-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+
+                <h2 class="confirmation-title">Pedido Realizado com Sucesso!</h2>
+                <p class="confirmation-subtitle">Seu pedido foi enviado para a cozinha</p>
+
+                <div class="order-info-card" id="orderInfo">
+                    <div class="order-number">
+                        <span class="label">Número do Pedido</span>
+                        <span class="value" id="numeroPedido">---</span>
+                    </div>
+                    <div class="order-details">
+                        <div class="detail-item">
+                            <i class="fas fa-clock"></i>
+                            <span id="horaPedido">--:--</span>
+                        </div>
+                        <div class="detail-item">
+                            <i class="fas fa-receipt"></i>
+                            <span id="totalPedido">R$ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="order-status">
+                    <div class="status-step active">
+                        <div class="status-icon"><i class="fas fa-check"></i></div>
+                        <span>Recebido</span>
+                    </div>
+                    <div class="status-line"></div>
+                    <div class="status-step">
+                        <div class="status-icon"><i class="fas fa-fire"></i></div>
+                        <span>Em Preparo</span>
+                    </div>
+                    <div class="status-line"></div>
+                    <div class="status-step">
+                        <div class="status-icon"><i class="fas fa-bell"></i></div>
+                        <span>Pronto</span>
+                    </div>
+                </div>
+
+                <div class="confirmation-actions">
+                    <a href="/Pedido/MeusPedidos" class="btn btn-outline-primary">
+                        <i class="fas fa-list me-2"></i>Ver Meus Pedidos
+                    </a>
+                    <a href="/Cardapio" class="btn btn-primary">
+                        <i class="fas fa-utensils me-2"></i>Voltar ao Cardápio
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const PEDIDO_ID = @pedidoId;
+        
+        $(document).ready(function() {
+            loadPedidoInfo();
+            localStorage.removeItem('padoka_cart');
+        });
+        
+        function loadPedidoInfo() {
+            const token = localStorage.getItem('padoka_token');
+            
+            $.ajax({
+                url: `/api/pedido/${PEDIDO_ID}`,
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                success: function(response) {
+                    if (response.sucesso && response.dados) {
+                        const pedido = response.dados;
+                        $('#numeroPedido').text(pedido.numeroPedido);
+                        $('#totalPedido').text(formatCurrency(pedido.valorTotal));
+                        $('#horaPedido').text(new Date(pedido.criadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Erro ao carregar pedido:', xhr);
+                }
+            });
+        }
+        
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(value);
+        }
+    </script>
+</body>
+</html>

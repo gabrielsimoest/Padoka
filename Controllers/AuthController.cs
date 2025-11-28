@@ -103,7 +103,21 @@ namespace Padoka.Controllers
         [Route("api/auth/logout")]
         public IActionResult Logout()
         {
+            // Limpar todos os cookies de autenticação
+            var cookieOptions = new CookieOptions
+            {
+                Expires = DateTime.UtcNow.AddDays(-1),
+                Path = "/",
+                HttpOnly = true,
+                Secure = false,
+                SameSite = SameSiteMode.Lax
+            };
+            
             Response.Cookies.Delete("auth_token");
+            Response.Cookies.Delete("padoka_token");
+            Response.Cookies.Append("auth_token", "", cookieOptions);
+            Response.Cookies.Append("padoka_token", "", cookieOptions);
+            
             return Ok(new { sucesso = true, mensagem = "Logout realizado com sucesso" });
         }
 
