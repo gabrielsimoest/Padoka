@@ -1,0 +1,482 @@
+@{
+    ViewData["Title"] = "Admin - Pedidos";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Padoka</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+    <div class="admin-wrapper">
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <a href="/Admin/Dashboard" class="logo-link">
+                    <img src="~/img/logo-padoka.png" alt="Padoka" class="sidebar-logo" />
+                </a>
+                <span class="sidebar-title">Admin</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="/Admin/Dashboard" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="/Admin/Pedidos" class="nav-item active">
+                    <i class="fas fa-receipt"></i>
+                    <span>Pedidos</span>
+                    <span class="badge" id="pedidosPendentes">0</span>
+                </a>
+                <a href="/Admin/Cardapio" class="nav-item">
+                    <i class="fas fa-utensils"></i>
+                    <span>Cardápio</span>
+                </a>
+                <div class="nav-divider"></div>
+                <a href="/Cardapio" class="nav-item">
+                    <i class="fas fa-store"></i>
+                    <span>Ver Loja</span>
+                </a>
+                <a href="#" class="nav-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Sair</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="header-left">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>Pedidos</h1>
+                </div>
+                <div class="header-right">
+                    <span class="admin-user">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="adminName" class="d-none d-md-inline ms-2">Administrador</span>
+                    </span>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                <div class="admin-card mb-3 mb-md-4">
+                    <div class="card-body">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="filtroStatus">
+                                    <option value="">Todos</option>
+                                    <option value="0">Pendente</option>
+                                    <option value="1">Em Preparo</option>
+                                    <option value="2">Pronto</option>
+                                    <option value="3">Entregue</option>
+                                    <option value="4">Cancelado</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Buscar</label>
+                                <input type="text" class="form-control" id="filtroBusca" placeholder="Número ou cliente...">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Data</label>
+                                <input type="date" class="form-control" id="filtroData">
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-primary w-100" onclick="loadPedidos()">
+                                    <i class="fas fa-search me-2"></i>Filtrar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-tabs mb-4">
+                    <button class="status-tab active" data-status="" onclick="filterByStatus('')">
+                        Todos
+                    </button>
+                    <button class="status-tab pendente" data-status="0" onclick="filterByStatus('0')">
+                        <i class="fas fa-clock me-1"></i>Pendentes <span class="count" id="tabPendente">0</span>
+                    </button>
+                    <button class="status-tab em-preparo" data-status="1" onclick="filterByStatus('1')">
+                        <i class="fas fa-fire me-1"></i>Em Preparo <span class="count" id="tabEmPreparo">0</span>
+                    </button>
+                    <button class="status-tab pronto" data-status="2" onclick="filterByStatus('2')">
+                        <i class="fas fa-check me-1"></i>Prontos <span class="count" id="tabPronto">0</span>
+                    </button>
+                </div>
+
+                <div class="admin-card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-list me-2"></i>Pedidos</h5>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="loadPedidos()">
+                            <i class="fas fa-sync-alt me-1"></i>Atualizar
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table admin-table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Pedido</th>
+                                        <th>Cliente</th>
+                                        <th class="hide-mobile">Mesa</th>
+                                        <th class="hide-mobile">Itens</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th class="hide-mobile">Horário</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pedidosTable">
+                                    <tr>
+                                        <td colspan="8" class="text-center py-4">
+                                            <i class="fas fa-spinner fa-spin me-2"></i>Carregando...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div class="text-muted" id="paginationInfo">
+                        Mostrando 0 de 0 pedidos
+                    </div>
+                    <nav>
+                        <ul class="pagination mb-0" id="pagination"></ul>
+                    </nav>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal fade" id="pedidoModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pedidoModalTitle">Detalhes do Pedido</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="pedidoModalBody">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/admin.js" asp-append-version="true"></script>
+    <script>
+        let currentPage = 1;
+        let totalPages = 1;
+        const pageSize = 15;
+        
+        $(document).ready(function() {
+            checkAdminAuth();
+            loadPedidos();
+            loadStatusCounts();
+            
+            setInterval(() => {
+                loadPedidos();
+                loadStatusCounts();
+            }, 30000);
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('status')) {
+                filterByStatus(urlParams.get('status') === 'pendente' ? '0' : urlParams.get('status'));
+            }
+        });
+        
+        function loadStatusCounts() {
+            const token = localStorage.getItem('padoka_token');
+            
+            $.ajax({
+                url: '/api/admin/dashboard',
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` },
+                success: function(response) {
+                    if (response.sucesso && response.dados) {
+                        $('#pedidosPendentes').text(response.dados.pedidosPendentes);
+                        $('#tabPendente').text(response.dados.pedidosPendentes);
+                        $('#tabEmPreparo').text(response.dados.pedidosEmPreparo || 0);
+                        $('#tabPronto').text(response.dados.pedidosProntos || 0);
+                    }
+                }
+            });
+        }
+        
+        function filterByStatus(status) {
+            $('#filtroStatus').val(status);
+            $('.status-tab').removeClass('active');
+            $(`.status-tab[data-status="${status}"]`).addClass('active');
+            currentPage = 1;
+            loadPedidos();
+        }
+        
+        function loadPedidos() {
+            const token = localStorage.getItem('padoka_token');
+            const status = $('#filtroStatus').val();
+            const busca = $('#filtroBusca').val();
+            
+            let url = `/api/admin/pedidos?pagina=${currentPage}&tamanhoPagina=${pageSize}`;
+            if (status) url += `&status=${status}`;
+            if (busca) url += `&busca=${encodeURIComponent(busca)}`;
+            
+            $.ajax({
+                url: url,
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` },
+                success: function(response) {
+                    if (response.sucesso) {
+                        renderPedidos(response.dados || []);
+                        $('#paginationInfo').text(`Mostrando ${response.dados?.length || 0} pedidos`);
+                    }
+                },
+                error: function(xhr) {
+                    $('#pedidosTable').html(`
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-danger">
+                                Erro ao carregar pedidos
+                            </td>
+                        </tr>
+                    `);
+                }
+            });
+        }
+        
+        function renderPedidos(pedidos) {
+            const tbody = $('#pedidosTable');
+            tbody.empty();
+            
+            if (!pedidos || pedidos.length === 0) {
+                tbody.html(`
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            <i class="fas fa-inbox me-2"></i>Nenhum pedido encontrado
+                        </td>
+                    </tr>
+                `);
+                return;
+            }
+            
+            pedidos.forEach(pedido => {
+                const statusCode = pedido.statusCodigo ?? pedido.status;
+                const statusClass = getStatusClass(statusCode);
+                const statusText = getStatusText(statusCode);
+                const hora = new Date(pedido.criadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                const nomeCliente = pedido.nomeCliente || pedido.cliente?.nome || 'Cliente';
+                const mesa = pedido.mesa || pedido.numeroMesa || '-';
+                const qtdItens = pedido.quantidadeItens || pedido.totalItens || 0;
+                
+                tbody.append(`
+                    <tr class="pedido-row ${statusCode === 0 ? 'highlight-pendente' : ''}">
+                        <td>
+                            <strong>#${pedido.numeroPedido}</strong>
+                        </td>
+                        <td>${nomeCliente}</td>
+                        <td class="hide-mobile">${mesa}</td>
+                        <td class="hide-mobile">
+                            <span class="text-muted">${qtdItens} itens</span>
+                        </td>
+                        <td><strong>${formatCurrency(pedido.valorTotal)}</strong></td>
+                        <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                        <td class="hide-mobile">${hora}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="verDetalhes(${pedido.id})" title="Ver Detalhes">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                ${getActionButtons(pedido)}
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+        
+        function getActionButtons(pedido) {
+            switch(pedido.status) {
+                case 0: // Pendente
+                    return `
+                        <button class="btn btn-success" onclick="atualizarStatus(${pedido.id}, 1)" title="Iniciar Preparo">
+                            <i class="fas fa-fire"></i>
+                        </button>
+                        <button class="btn btn-danger" onclick="confirmarCancelamento(${pedido.id})" title="Cancelar">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                case 1: // Em Preparo
+                    return `
+                        <button class="btn btn-success" onclick="atualizarStatus(${pedido.id}, 2)" title="Marcar Pronto">
+                            <i class="fas fa-check"></i>
+                        </button>
+                    `;
+                case 2: // Pronto
+                    return `
+                        <button class="btn btn-success" onclick="atualizarStatus(${pedido.id}, 3)" title="Marcar Entregue">
+                            <i class="fas fa-hand-holding"></i>
+                        </button>
+                    `;
+                default:
+                    return '';
+            }
+        }
+        
+        function verDetalhes(pedidoId) {
+            const token = localStorage.getItem('padoka_token');
+            const modal = new bootstrap.Modal(document.getElementById('pedidoModal'));
+            
+            $('#pedidoModalBody').html('<div class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x"></i></div>');
+            modal.show();
+            
+            $.ajax({
+                url: `/api/pedido/${pedidoId}`,
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` },
+                success: function(response) {
+                    if (response.sucesso && response.dados) {
+                        renderDetalhesPedido(response.dados);
+                    }
+                },
+                error: function() {
+                    $('#pedidoModalBody').html('<div class="alert alert-danger">Erro ao carregar detalhes</div>');
+                }
+            });
+        }
+        
+        function renderDetalhesPedido(pedido) {
+            const statusCode = pedido.statusCodigo ?? pedido.status;
+            const statusClass = getStatusClass(statusCode);
+            const statusText = getStatusText(statusCode);
+            const nomeCliente = pedido.cliente?.nome || pedido.nomeCliente || 'Cliente';
+            const numeroMesa = pedido.mesa || pedido.numeroMesa || 'Não informada';
+            const observacao = pedido.observacoes || pedido.observacao;
+            
+            let itensHtml = pedido.itens?.map(item => `
+                <div class="d-flex justify-content-between border-bottom py-2">
+                    <div>
+                        <strong>${item.quantidade}x</strong> ${item.nome || item.nomeItem}
+                        ${item.opcoesAdicionais?.length ? `<div class="text-muted small">${item.opcoesAdicionais.map(o => o.nome).join(', ')}</div>` : ''}
+                        ${item.observacoes ? `<div class="text-muted small fst-italic">"${item.observacoes}"</div>` : ''}
+                    </div>
+                    <strong>${formatCurrency(item.precoTotal || item.subtotal || (item.precoUnitario * item.quantidade))}</strong>
+                </div>
+            `).join('') || '<p class="text-muted">Sem itens</p>';
+            
+            $('#pedidoModalTitle').text(`Pedido #${pedido.numeroPedido}`);
+            $('#pedidoModalBody').html(`
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <small class="text-muted">Status</small>
+                        <div><span class="status-badge ${statusClass}">${statusText}</span></div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Horário</small>
+                        <div>${new Date(pedido.criadoEm).toLocaleString('pt-BR')}</div>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <small class="text-muted">Cliente</small>
+                        <div><strong>${nomeCliente}</strong></div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Mesa</small>
+                        <div>${numeroMesa}</div>
+                    </div>
+                </div>
+                ${observacao ? `
+                    <div class="mb-3">
+                        <small class="text-muted">Observações</small>
+                        <div class="fst-italic">"${observacao}"</div>
+                    </div>
+                ` : ''}
+                <hr>
+                <h6>Itens do Pedido</h6>
+                ${itensHtml}
+                <div class="d-flex justify-content-between mt-3 pt-3 border-top">
+                    <strong class="fs-5">Total</strong>
+                    <strong class="fs-4 text-primary">${formatCurrency(pedido.valorTotal)}</strong>
+                </div>
+                <hr>
+                <div class="d-flex gap-2 justify-content-end">
+                    ${getActionButtonsLarge(pedido)}
+                </div>
+            `);
+        }
+        
+        function getActionButtonsLarge(pedido) {
+            const status = pedido.statusCodigo ?? pedido.status;
+            switch(status) {
+                case 0:
+                    return `
+                        <button class="btn btn-success" onclick="atualizarStatus(${pedido.id}, 1); bootstrap.Modal.getInstance(document.getElementById('pedidoModal')).hide();">
+                            <i class="fas fa-fire me-1"></i>Iniciar Preparo
+                        </button>
+                        <button class="btn btn-danger" onclick="confirmarCancelamento(${pedido.id})">
+                            <i class="fas fa-times me-1"></i>Cancelar
+                        </button>
+                    `;
+                case 1:
+                    return `
+                        <button class="btn btn-success" onclick="atualizarStatus(${pedido.id}, 2); bootstrap.Modal.getInstance(document.getElementById('pedidoModal')).hide();">
+                            <i class="fas fa-check me-1"></i>Marcar Pronto
+                        </button>
+                    `;
+                case 2:
+                    return `
+                        <button class="btn btn-success" onclick="atualizarStatus(${pedido.id}, 3); bootstrap.Modal.getInstance(document.getElementById('pedidoModal')).hide();">
+                            <i class="fas fa-hand-holding me-1"></i>Marcar Entregue
+                        </button>
+                    `;
+                default:
+                    return '';
+            }
+        }
+        
+        function atualizarStatus(pedidoId, novoStatus) {
+            const token = localStorage.getItem('padoka_token');
+            
+            $.ajax({
+                url: `/api/admin/pedidos/${pedidoId}/status`,
+                method: 'PUT',
+                contentType: 'application/json',
+                headers: { 'Authorization': `Bearer ${token}` },
+                data: JSON.stringify({ status: novoStatus }),
+                success: function(response) {
+                    if (response.sucesso) {
+                        showToast('success', 'Status atualizado!');
+                        loadPedidos();
+                        loadStatusCounts();
+                    } else {
+                        showToast('error', response.mensagem || 'Erro ao atualizar');
+                    }
+                },
+                error: function() {
+                    showToast('error', 'Erro ao atualizar status');
+                }
+            });
+        }
+        
+        function confirmarCancelamento(pedidoId) {
+            if (confirm('Tem certeza que deseja cancelar este pedido?')) {
+                atualizarStatus(pedidoId, 4);
+                const modal = bootstrap.Modal.getInstance(document.getElementById('pedidoModal'));
+                if (modal) modal.hide();
+            }
+        }
+    </script>
+</body>
+</html>

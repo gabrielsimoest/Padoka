@@ -1,0 +1,365 @@
+@{
+    ViewData["Title"] = "Meus Pedidos";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Padoka</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/cardapio.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/checkout.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+    <header class="cardapio-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo-link">
+                    <img src="~/img/logo-padoka.png" alt="Padoka" class="header-logo" />
+                </a>
+                <div class="header-info">
+                    <h1>Meus Pedidos</h1>
+                    <p>Acompanhe seus pedidos</p>
+                </div>
+                <div class="header-actions">
+                    <a href="/Cardapio" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-utensils me-1"></i>Cardápio
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="pedidos-main">
+        <div class="container">
+            <a href="/Cardapio" class="back-to-cardapio">
+                <i class="fas fa-arrow-left"></i>
+                <span>Voltar ao Cardápio</span>
+            </a>
+
+            <div class="pedidos-header">
+                <h2>Histórico de Pedidos</h2>
+                <p>Veja todos os seus pedidos realizados</p>
+            </div>
+
+            <div id="pedidosList">
+                <div class="text-center py-5">
+                    <i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
+                    <p class="mt-3 text-muted">Carregando pedidos...</p>
+                </div>
+            </div>
+
+            <div id="pagination" class="d-flex justify-content-center mt-4" style="display: none !important;"></div>
+        </div>
+    </main>
+
+    <div class="modal fade" id="pedidoModal" tabindex="-1" aria-labelledby="pedidoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pedidoModalLabel">Detalhes do Pedido</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+                <div class="modal-body" id="pedidoModalBody">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentPage = 1;
+        const pageSize = 10;
+        
+        $(document).ready(function() {
+            checkAuthentication();
+        });
+        
+        function checkAuthentication() {
+            const token = localStorage.getItem('padoka_token');
+            if (!token) {
+                window.location.href = '/Auth/Login?returnUrl=/Pedido/MeusPedidos';
+                return;
+            }
+            loadPedidos();
+        }
+        
+        function loadPedidos() {
+            const token = localStorage.getItem('padoka_token');
+            
+            $.ajax({
+                url: `/api/pedido/meus-pedidos?pagina=${currentPage}&tamanhoPagina=${pageSize}`,
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                success: function(response) {
+                    if (response.sucesso && response.dados) {
+                        renderPedidos(response.dados);
+                    } else {
+                        showNoPedidos();
+                    }
+                },
+                error: function(xhr) {
+                    if (xhr.status === 401) {
+                        localStorage.removeItem('padoka_token');
+                        localStorage.removeItem('padoka_user');
+                        window.location.href = '/Auth/Login?returnUrl=/Pedido/MeusPedidos';
+                    } else {
+                        $('#pedidosList').html(`
+                            <div class="alert alert-danger text-center">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                Erro ao carregar pedidos. Tente novamente.
+                            </div>
+                        `);
+                    }
+                }
+            });
+        }
+        
+        function renderPedidos(pedidos) {
+            const container = $('#pedidosList');
+            container.empty();
+            
+            if (!pedidos || pedidos.length === 0) {
+                showNoPedidos();
+                return;
+            }
+            
+            pedidos.forEach(pedido => {
+                const statusCode = pedido.statusCodigo ?? pedido.status;
+                const statusClass = getStatusClass(statusCode);
+                const statusText = getStatusText(statusCode);
+                const dataFormatada = new Date(pedido.criadoEm).toLocaleDateString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                const pedidoHtml = `
+                    <div class="pedido-card" onclick="showPedidoDetails(${pedido.id})" style="cursor: pointer;">
+                        <div class="pedido-card-header">
+                            <span class="pedido-numero">
+                                <i class="fas fa-receipt me-2"></i>Pedido #${pedido.numeroPedido}
+                            </span>
+                            <span class="pedido-status ${statusClass}">${statusText}</span>
+                        </div>
+                        <div class="pedido-card-body">
+                            <div class="pedido-items-preview">
+                                ${pedido.itensResumo ? pedido.itensResumo.split(',').slice(0, 3).map(item => 
+                                    `<span>${item.trim()}</span>`
+                                ).join('') : '<span>Carregando...</span>'}
+                                ${pedido.quantidadeItens > 3 ? `<span>+${pedido.quantidadeItens - 3} itens</span>` : ''}
+                            </div>
+                            <div class="pedido-card-footer">
+                                <div class="pedido-info">
+                                    <span><i class="fas fa-calendar-alt"></i> ${dataFormatada}</span>
+                                    ${pedido.numeroMesa ? `<span><i class="fas fa-chair"></i> Mesa ${pedido.numeroMesa}</span>` : ''}
+                                </div>
+                                <span class="pedido-total">${formatCurrency(pedido.valorTotal)}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.append(pedidoHtml);
+            });
+        }
+        
+        function showNoPedidos() {
+            $('#pedidosList').html(`
+                <div class="no-orders">
+                    <i class="fas fa-shopping-bag"></i>
+                    <h4>Nenhum pedido encontrado</h4>
+                    <p>Você ainda não fez nenhum pedido.</p>
+                    <a href="/Cardapio" class="btn btn-primary">
+                        <i class="fas fa-utensils me-2"></i>Ver Cardápio
+                    </a>
+                </div>
+            `);
+        }
+        
+        function showPedidoDetails(pedidoId) {
+            const token = localStorage.getItem('padoka_token');
+            const modal = new bootstrap.Modal(document.getElementById('pedidoModal'));
+            
+            $('#pedidoModalBody').html(`
+                <div class="text-center py-4">
+                    <i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
+                    <p class="mt-2 text-muted">Carregando...</p>
+                </div>
+            `);
+            
+            modal.show();
+            
+            $.ajax({
+                url: `/api/pedido/${pedidoId}`,
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                success: function(response) {
+                    if (response.sucesso && response.dados) {
+                        renderPedidoDetails(response.dados);
+                    }
+                },
+                error: function(xhr) {
+                    $('#pedidoModalBody').html(`
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            Erro ao carregar detalhes do pedido.
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        function renderPedidoDetails(pedido) {
+            const statusCode = pedido.statusCodigo ?? pedido.status;
+            const statusClass = getStatusClass(statusCode);
+            const statusText = getStatusText(statusCode);
+            const dataFormatada = new Date(pedido.criadoEm).toLocaleDateString('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            let itensHtml = '';
+            if (pedido.itens && pedido.itens.length > 0) {
+                itensHtml = pedido.itens.map(item => `
+                    <div class="d-flex justify-content-between align-items-start py-2 border-bottom">
+                        <div>
+                            <strong>${item.quantidade}x ${item.nome || item.nomeItem}</strong>
+                            ${item.opcoesAdicionais && item.opcoesAdicionais.length > 0 ? `
+                                <div class="text-muted small">
+                                    ${item.opcoesAdicionais.map(o => `+ ${o.nome}`).join(', ')}
+                                </div>
+                            ` : ''}
+                            ${item.observacoes ? `<div class="text-muted small fst-italic">"${item.observacoes}"</div>` : ''}
+                        </div>
+                        <span class="fw-bold">${formatCurrency(item.precoTotal || item.subtotal || (item.precoUnitario * item.quantidade))}</span>
+                    </div>
+                `).join('');
+            }
+            
+            let historicoHtml = '';
+            if (pedido.historico && pedido.historico.length > 0) {
+                historicoHtml = `
+                    <div class="mt-4">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-history me-2"></i>Histórico</h6>
+                        <div class="timeline">
+                            ${pedido.historico.map(h => `
+                                <div class="d-flex align-items-center mb-2">
+                                    <span class="badge bg-secondary me-2">${h.statusNovo || getStatusText(h.status)}</span>
+                                    <small class="text-muted">${new Date(h.alteradoEm || h.dataHora).toLocaleString('pt-BR')}</small>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            const nomeCliente = pedido.cliente?.nome || pedido.Cliente?.Nome || pedido.nomeCliente || pedido.NomeCliente || 'Você';
+            
+            $('#pedidoModalLabel').text(`Pedido #${pedido.numeroPedido}`);
+            $('#pedidoModalBody').html(`
+                <div class="mb-3">
+                    <span class="pedido-status ${statusClass}" style="font-size: 0.9rem;">${statusText}</span>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <small class="text-muted">Cliente</small>
+                        <div class="fw-bold">${nomeCliente}</div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Data</small>
+                        <div class="fw-bold">${dataFormatada}</div>
+                    </div>
+                </div>
+                
+                ${pedido.numeroMesa || pedido.mesa ? `
+                    <div class="mb-3">
+                        <small class="text-muted">Mesa</small>
+                        <div class="fw-bold">${pedido.numeroMesa || pedido.mesa}</div>
+                    </div>
+                ` : ''}
+                
+                ${pedido.observacao || pedido.observacoes ? `
+                    <div class="mb-3">
+                        <small class="text-muted">Observações</small>
+                        <div class="fst-italic">"${pedido.observacoes || pedido.observacao}"</div>
+                    </div>
+                ` : ''}
+                
+                <hr>
+                
+                <h6 class="fw-bold mb-3"><i class="fas fa-shopping-basket me-2"></i>Itens do Pedido</h6>
+                ${itensHtml}
+                
+                <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top">
+                    <span class="fw-bold fs-5">Total</span>
+                    <span class="fw-bold fs-4 text-primary">${formatCurrency(pedido.valorTotal)}</span>
+                </div>
+                
+                ${historicoHtml}
+            `);
+        }
+        
+        function statusToNumber(status) {
+            if (typeof status === 'number') return status;
+            const statusMap = {
+                'pendente': 0,
+                'empreparo': 1,
+                'pronto': 2,
+                'entregue': 3,
+                'cancelado': 4
+            };
+            return statusMap[String(status).toLowerCase()] ?? parseInt(status) ?? 0;
+        }
+
+        function getStatusClass(status) {
+            const numStatus = statusToNumber(status);
+            const classes = {
+                0: 'pendente',      
+                1: 'em-preparo',    
+                2: 'pronto',        
+                3: 'entregue',      
+                4: 'cancelado'      
+            };
+            return classes[numStatus] || 'pendente';
+        }
+        
+        function getStatusText(status) {
+            const numStatus = statusToNumber(status);
+            const texts = {
+                0: 'Pendente',
+                1: 'Em Preparo',
+                2: 'Pronto',
+                3: 'Entregue',
+                4: 'Cancelado'
+            };
+            return texts[numStatus] || 'Desconhecido';
+        }
+        
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(value);
+        }
+    </script>
+</body>
+</html>

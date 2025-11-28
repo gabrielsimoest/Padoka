@@ -58,7 +58,8 @@ function setupLoginForm() {
                 if (response.sucesso) {
                     showAlert('success', 'Login realizado com sucesso! Redirecionando...');
                     
-                    localStorage.setItem('usuario', JSON.stringify(response.usuario));
+                    localStorage.setItem('padoka_token', response.token);
+                    localStorage.setItem('padoka_user', JSON.stringify(response.usuario));
                     
                     setTimeout(function () {
                         if (response.usuario.tipo === 'Administrador') {
@@ -121,9 +122,9 @@ function setupRegistroForm() {
                 if (response.sucesso) {
                     showAlert('success', 'Cadastro realizado com sucesso! Redirecionando...');
                     
-                    localStorage.setItem('usuario', JSON.stringify(response.usuario));
+                    localStorage.setItem('padoka_token', response.token);
+                    localStorage.setItem('padoka_user', JSON.stringify(response.usuario));
                     
-                    // Redirecionar para home
                     setTimeout(function () {
                         window.location.href = '/';
                     }, 1000);
@@ -199,15 +200,18 @@ function hideAlert() {
 }
 
 function logout() {
+    localStorage.removeItem('padoka_token');
+    localStorage.removeItem('padoka_user');
+    localStorage.removeItem('padoka_cart');
+    localStorage.removeItem('usuario');
+    
+    document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'padoka_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    
     $.ajax({
         url: '/api/auth/logout',
         type: 'POST',
-        success: function () {
-            localStorage.removeItem('usuario');
-            window.location.href = '/Auth/Login';
-        },
-        error: function () {
-            localStorage.removeItem('usuario');
+        complete: function () {
             window.location.href = '/Auth/Login';
         }
     });

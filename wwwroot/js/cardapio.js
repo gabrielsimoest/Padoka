@@ -12,10 +12,6 @@ function initCardapio() {
     updateCartCount();
 }
 
-// ========================================
-// Authentication
-// ========================================
-
 function checkAuthStatus() {
     const token = localStorage.getItem('padoka_token');
     const userData = localStorage.getItem('padoka_user');
@@ -41,9 +37,14 @@ function showUserMenu(user) {
     $('#btnLogin').addClass('d-none');
     $('#userMenu').removeClass('d-none');
     
-    // Exibe o primeiro nome do usuário
     const firstName = user.nome ? user.nome.split(' ')[0] : 'Usuário';
     $('#userName').text(firstName);
+    
+    if (user.tipo === 'Administrador' || user.tipoUsuario === 'Administrador' || user.isAdmin) {
+        $('#menuAdmin').removeClass('d-none');
+    } else {
+        $('#menuAdmin').addClass('d-none');
+    }
 }
 
 function toggleUserDropdown() {
@@ -54,6 +55,12 @@ function logout() {
     localStorage.removeItem('padoka_token');
     localStorage.removeItem('padoka_user');
     localStorage.removeItem('padoka_cart');
+    localStorage.removeItem('usuario');
+    
+    document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'padoka_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    
+    fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
     
     showLoginButton();
     cart = [];
@@ -62,7 +69,6 @@ function logout() {
     showToast('Você saiu da sua conta', 'info');
 }
 
-// Fechar dropdown ao clicar fora
 $(document).on('click', function (e) {
     if (!$(e.target).closest('.user-menu').length) {
         $('#userMenu').removeClass('open');
@@ -280,24 +286,27 @@ function renderSearchResults(itens, query) {
 }
 
 function renderItems(itens) {
-    return itens.map(item => `
+    const placeholderImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect fill='%23f5e6d3' width='200' height='200'/%3E%3Ctext x='50%25' y='50%25' fill='%23c4a574' font-family='Arial' font-size='60' text-anchor='middle' dy='.3em'%3E🍞%3C/text%3E%3C/svg%3E";
+    return itens.map(item => {
+        const imgUrl = item.imagemUrl && item.imagemUrl.trim() !== '' ? item.imagemUrl : placeholderImg;
+        return `
         <a href="/Cardapio/Item/${item.id}" class="item-card">
-            <img src="${item.imagemUrl || '/img/placeholder-item.png'}" 
+            <img src="${imgUrl}" 
                  alt="${item.nome}" 
                  class="item-card-image"
-                 onerror="this.src='/img/placeholder-item.png'">
+                 onerror="this.src='${placeholderImg}'">
             <div class="item-card-body">
                 <h3 class="item-card-name">${item.nome}</h3>
                 <p class="item-card-description">${item.descricaoResumida || item.descricao || ''}</p>
                 <div class="item-card-footer">
                     <span class="item-card-price">${formatCurrency(item.preco)}</span>
-                    <button type="button" class="item-card-btn" onclick="event.preventDefault(); quickAddToCart(${item.id}, '${escapeHtml(item.nome)}', ${item.preco}, '${item.imagemUrl || ''}')">
+                    <button type="button" class="item-card-btn" onclick="event.preventDefault(); quickAddToCart(${item.id}, '${escapeHtml(item.nome)}', ${item.preco}, '${imgUrl}')">
                         <i class="fas fa-plus"></i>
                     </button>
                 </div>
             </div>
         </a>
-    `).join('');
+    `}).join('');
 }
 
 function showLoading() {
@@ -509,12 +518,15 @@ function renderCart() {
             item.opcoes.forEach(o => itemTotalPrice += o.preco);
         }
         
+        const placeholderImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect fill='%23f5e6d3' width='80' height='80'/%3E%3Ctext x='50%25' y='50%25' fill='%23c4a574' font-family='Arial' font-size='30' text-anchor='middle' dy='.3em'%3E🍞%3C/text%3E%3C/svg%3E";
+        const imgUrl = item.imagemUrl && item.imagemUrl.trim() !== '' ? item.imagemUrl : placeholderImg;
+        
         html += `
             <div class="cart-item">
-                <img src="${item.imagemUrl || '/img/placeholder-item.png'}" 
+                <img src="${imgUrl}" 
                      alt="${item.nome}" 
                      class="cart-item-image"
-                     onerror="this.src='/img/placeholder-item.png'">
+                     onerror="this.src='${placeholderImg}'">
                 <div class="cart-item-info">
                     <div class="cart-item-name">${item.nome}</div>
                     ${optionsText ? `<div class="cart-item-options">${optionsText}</div>` : ''}

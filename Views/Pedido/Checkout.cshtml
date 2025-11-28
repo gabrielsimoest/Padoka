@@ -1,0 +1,145 @@
+@{
+    ViewData["Title"] = "Finalizar Pedido";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Padoka</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/cardapio.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/checkout.css" asp-append-version="true" />
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</head>
+<body>
+    <header class="cardapio-header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/Cardapio" class="btn-back">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div class="header-info">
+                    <h1>Finalizar Pedido</h1>
+                    <p>Revise seus itens antes de confirmar</p>
+                </div>
+                <div class="header-actions">
+                    <div class="checkout-step">
+                        <span class="step-number">1</span>
+                        <span class="step-text">Revisão</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="checkout-main">
+        <div class="container">
+            <div class="loading-state" id="loadingState">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Carregando...</span>
+                </div>
+                <p>Carregando pedido...</p>
+            </div>
+
+            <div class="empty-state d-none" id="emptyState">
+                <i class="fas fa-shopping-basket"></i>
+                <h3>Seu carrinho está vazio</h3>
+                <p>Adicione itens do cardápio para fazer seu pedido.</p>
+                <a href="/Cardapio" class="btn btn-primary mt-3">
+                    <i class="fas fa-arrow-left me-2"></i>Voltar ao Cardápio
+                </a>
+            </div>
+
+            <div class="checkout-content d-none" id="checkoutContent">
+                <div class="row">
+                    <div class="col-lg-8">
+                        <div class="checkout-card">
+                            <div class="checkout-card-header">
+                                <h2><i class="fas fa-shopping-bag me-2"></i>Itens do Pedido</h2>
+                                <span class="items-count" id="itemsCount">0 itens</span>
+                            </div>
+                            <div class="checkout-card-body">
+                                <div class="checkout-items" id="checkoutItems">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="checkout-card">
+                            <div class="checkout-card-header">
+                                <h2><i class="fas fa-info-circle me-2"></i>Dados do Pedido</h2>
+                            </div>
+                            <div class="checkout-card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="mesa" class="form-label">
+                                                <i class="fas fa-chair me-1"></i>Mesa (opcional)
+                                            </label>
+                                            <input type="text" class="form-control" id="mesa" 
+                                                   placeholder="Ex: Mesa 5, Balcão..." maxlength="20">
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            <label for="observacoes" class="form-label">
+                                                <i class="fas fa-comment me-1"></i>Observações do Pedido
+                                            </label>
+                                            <textarea class="form-control" id="observacoes" rows="3"
+                                                      placeholder="Ex: Sem gelo, bem passado..." maxlength="500"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4">
+                        <div class="checkout-card checkout-summary sticky-top">
+                            <div class="checkout-card-header">
+                                <h2><i class="fas fa-receipt me-2"></i>Resumo</h2>
+                            </div>
+                            <div class="checkout-card-body">
+                                <div class="summary-row">
+                                    <span>Subtotal</span>
+                                    <span id="subtotal">R$ 0,00</span>
+                                </div>
+                                <div class="summary-row summary-total">
+                                    <span>Total</span>
+                                    <strong id="total">R$ 0,00</strong>
+                                </div>
+                            </div>
+                            <div class="checkout-card-footer">
+                                <button class="btn-confirmar" id="btnConfirmar" onclick="confirmarPedido()">
+                                    <i class="fas fa-check me-2"></i>Confirmar Pedido
+                                </button>
+                                <a href="/Cardapio" class="btn-voltar">
+                                    <i class="fas fa-plus me-2"></i>Adicionar mais itens
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content text-center p-4">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Processando...</span>
+                </div>
+                <p class="mb-0">Enviando pedido...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/checkout.js" asp-append-version="true"></script>
+</body>
+</html>

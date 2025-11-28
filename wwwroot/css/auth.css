@@ -29,6 +29,35 @@ body {
     justify-content: center;
 }
 
+.skip-to-cardapio {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--bg-gradient);
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 14px;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+}
+
+.skip-to-cardapio:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    color: #fff;
+    background: linear-gradient(135deg, #bf360c 0%, #e65100 100%);
+}
+
+.skip-to-cardapio i {
+    font-size: 16px;
+}
+
 .auth-container {
     display: flex;
     width: 100%;
@@ -402,21 +431,70 @@ body {
     .features-list {
         display: none;
     }
+    
+    .auth-illustration .btn {
+        display: none;
+    }
+    
+    .skip-to-cardapio {
+        top: 15px;
+        right: 15px;
+        padding: 10px 20px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 768px) {
+    .auth-container {
+        max-width: 100%;
+        margin: 10px;
+        border-radius: 12px;
+    }
+    
+    .auth-card {
+        padding: 30px;
+    }
+    
+    .auth-illustration {
+        padding: 25px;
+    }
+    
+    .illustration-content p.description {
+        display: none;
+    }
 }
 
 @media (max-width: 576px) {
+    body {
+        align-items: flex-start;
+    }
+    
     .auth-container {
         margin: 0;
         border-radius: 0;
         min-height: 100vh;
+        box-shadow: none;
     }
 
     .auth-card {
-        padding: 30px 25px;
+        padding: 25px 20px;
+        max-width: 100%;
+    }
+    
+    .auth-card-registro {
+        max-width: 100%;
+    }
+    
+    .auth-logo {
+        width: 150px;
     }
 
     .auth-title {
-        font-size: 24px;
+        font-size: 22px;
+    }
+    
+    .auth-subtitle {
+        font-size: 13px;
     }
 
     .auth-illustration {
@@ -424,13 +502,95 @@ body {
     }
 
     .illustration-content h2 {
-        font-size: 20px;
-        margin-bottom: 10px;
+        font-size: 18px;
+        margin-bottom: 8px;
     }
 
     .illustration-content p {
-        font-size: 14px;
+        font-size: 13px;
         margin-bottom: 0;
+    }
+    
+    .illustration-content .tagline {
+        font-size: 12px;
+    }
+    
+    .form-floating {
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .form-floating > .form-control {
+        padding: 1rem 0.75rem;
+        height: calc(3rem + 2px);
+    }
+    
+    .form-floating > label {
+        padding: 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    .btn-login {
+        padding: 0.75rem;
+        font-size: 0.9rem;
+    }
+    
+    .btn-outline-secondary {
+        padding: 0.6rem;
+        font-size: 0.85rem;
+    }
+    
+    .auth-divider {
+        margin: 1rem 0;
+    }
+    
+    .auth-footer {
+        font-size: 0.85rem;
+    }
+    
+    .skip-to-cardapio {
+        top: 10px;
+        right: 10px;
+        padding: 8px 16px;
+        font-size: 12px;
+        border-radius: 25px;
+    }
+    
+    .skip-to-cardapio i {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 400px) {
+    .auth-card {
+        padding: 20px 15px;
+    }
+    
+    .auth-logo {
+        width: 120px;
+    }
+    
+    .auth-title {
+        font-size: 20px;
+    }
+    
+    .form-floating > .form-control {
+        font-size: 14px;
+    }
+    
+    .skip-to-cardapio span {
+        display: none;
+    }
+    
+    .skip-to-cardapio {
+        padding: 10px;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        justify-content: center;
+    }
+    
+    .skip-to-cardapio i {
+        margin: 0 !important;
     }
 }
 
