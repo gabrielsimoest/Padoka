@@ -618,7 +618,11 @@
                 headers: { 'Authorization': `Bearer ${token}` },
                 success: function(response) {
                     if (response.sucesso) {
-                        showToast('success', 'Item excluído!');
+                        if (response.desativado) {
+                            showToast('warning', response.mensagem || 'Item desativado pois está vinculado a pedidos.');
+                        } else {
+                            showToast('success', response.mensagem || 'Item excluído!');
+                        }
                         loadItens();
                     } else {
                         showToast('error', response.mensagem || 'Erro ao excluir');

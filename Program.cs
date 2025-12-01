@@ -8,6 +8,11 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(9009); // HTTP
+});
+
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddFeatures();
@@ -47,6 +52,9 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Configuração para Docker - não forçar HTTPS redirection em containers
+var isDocker = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true";
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -58,7 +66,11 @@ else
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+if (!isDocker)
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseStaticFiles();
 
 app.UseRouting();

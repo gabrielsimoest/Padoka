@@ -1,0 +1,37 @@
+# Diretórios de build
+bin/
+obj/
+
+# Arquivos de IDE
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Arquivos de teste
+*.Tests/
+TestResults/
+
+# Logs
+logs/
+*.log
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentação
+*.md
+LICENSE
+
+# Configurações de desenvolvimento
+appsettings.Development.json
+launchSettings.json

@@ -298,11 +298,11 @@ namespace Padoka.Controllers
             }
 
             var resultado = await _adminCardapioService.ExcluirItemAsync(id);
-            if (!resultado)
+            if (!resultado.Sucesso)
             {
-                return NotFound(new { sucesso = false, mensagem = "Item não encontrado." });
+                return NotFound(new { sucesso = false, mensagem = resultado.Mensagem });
             }
-            return Ok(new { sucesso = true, mensagem = "Item excluído com sucesso." });
+            return Ok(new { sucesso = true, mensagem = resultado.Mensagem, desativado = resultado.Desativado });
         }
 
         [HttpPut]

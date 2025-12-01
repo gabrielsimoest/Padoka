@@ -1,0 +1,27 @@
+services:
+  padoka-app:
+    image: padoka:latest
+    container_name: padoka-app
+    ports:
+      - "9009:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__Padoka=Host=91.99.178.41;Port=7432;Database=Padoka;Username=admin;Password=11Pb_0@41$2
+      - Jwt__Secret=PadokaSecretKey123456789012345678901234567890
+      - Jwt__Issuer=Padoka
+      - Jwt__Audience=PadokaApp
+      - Jwt__ExpirationHours=24
+    volumes:
+      - padoka-data:/app/data
+    restart: unless-stopped
+    networks:
+      - proxy-manager
+
+volumes:
+  padoka-data:
+    driver: local
+
+networks:
+  proxy-manager:
+    external: true

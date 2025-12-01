@@ -269,14 +269,34 @@ namespace Padoka.Services
             };
         }
 
-        public async Task<bool> ExcluirItemAsync(long id)
+        public async Task<ResultadoExclusao> ExcluirItemAsync(long id)
         {
             var item = await _context.ItensCardapio.FindAsync(id);
-            if (item == null) return false;
+            if (item == null) 
+                return new ResultadoExclusao(false, "Item não encontrado.");
+
+            var itemEmUso = await _context.ItensPedido.AnyAsync(ip => ip.ItemCardapioId == id);
+            
+            if (itemEmUso)
+            {
+                item.Ativo = false;
+                item.AtualizadoEm = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                return new ResultadoExclusao(true, "Item desativado pois está vinculado a pedidos existentes.", true);
+            }
+
+            var opcoesDoItem = await _context.OpcoesAdicionais
+                .Where(o => o.ItemCardapioId == id)
+                .ToListAsync();
+            
+            if (opcoesDoItem.Any())
+            {
+                _context.OpcoesAdicionais.RemoveRange(opcoesDoItem);
+            }
 
             _context.ItensCardapio.Remove(item);
             await _context.SaveChangesAsync();
-            return true;
+            return new ResultadoExclusao(true, "Item excluído com sucesso.");
         }
 
         public async Task<bool> AlterarDisponibilidadeAsync(long id, bool disponivel)

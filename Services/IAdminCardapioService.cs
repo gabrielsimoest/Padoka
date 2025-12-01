@@ -2,6 +2,8 @@ using Padoka.DTOs;
 
 namespace Padoka.Services
 {
+    public record ResultadoExclusao(bool Sucesso, string Mensagem, bool Desativado = false);
+
     public interface IAdminCardapioService
     {
         Task<List<CategoriaAdminDTO>> ObterCategoriasAsync();
@@ -13,7 +15,7 @@ namespace Padoka.Services
         Task<ItemCardapioAdminDTO?> ObterItemAsync(long id);
         Task<ItemCardapioAdminDTO> CriarItemAsync(CriarItemCardapioDTO dto);
         Task<ItemCardapioAdminDTO?> AtualizarItemAsync(long id, AtualizarItemCardapioDTO dto);
-        Task<bool> ExcluirItemAsync(long id);
+        Task<ResultadoExclusao> ExcluirItemAsync(long id);
         Task<bool> AlterarDisponibilidadeAsync(long id, bool disponivel);
         Task<List<OpcaoAdicionalAdminDTO>> ObterOpcoesDoItemAsync(long itemId);
         Task<OpcaoAdicionalAdminDTO> CriarOpcaoAsync(CriarOpcaoAdicionalDTO dto);
