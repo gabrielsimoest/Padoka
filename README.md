@@ -190,8 +190,8 @@ dotnet run
 ```
 
 6. **Acesse o sistema**
-- 🌐 **Aplicação:** http://localhost:5000
-- 📚 **Swagger:** http://localhost:5000/swagger
+- 🌐 **Aplicação:** http://localhost:9001
+- 📚 **Swagger:** http://localhost:9001/swagger/index.html
 
 ---
 
@@ -200,7 +200,7 @@ dotnet run
 A API está documentada utilizando **Swagger/OpenAPI**. Após iniciar a aplicação, acesse:
 
 ```
-http://localhost:5000/swagger
+http://localhost:9001/swagger/index.html
 ```
 
 ### Principais Endpoints
@@ -318,7 +318,19 @@ O sistema é totalmente responsivo, adaptando-se a diferentes tamanhos de tela:
 
 ## 📄 Licença
 
-Este projeto foi desenvolvido para fins acadêmicos.
+⚠️ **TODOS OS DIREITOS RESERVADOS**
+
+Este projeto está protegido por uma **licença proprietária restritiva**. 
+
+**É PROIBIDO** sem autorização prévia por escrito:
+- Copiar, reproduzir ou duplicar o código
+- Modificar ou criar trabalhos derivados
+- Distribuir ou compartilhar com terceiros
+- Usar para fins comerciais ou não comerciais
+
+Para solicitar autorização de uso, entre em contato com o autor.
+
+Consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
 
 ---
 
